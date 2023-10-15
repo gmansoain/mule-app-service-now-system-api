@@ -31,9 +31,9 @@ pipeline {
                                     "providerId":null,
                                     "instanceLabel":null,
                                     "spec":{
-                                        "assetId":"service-now-system-api",
+                                        "assetId":"servicenow-system-api",
                                         "groupId":"fc9e3283-a489-4e88-99aa-cceea4aa5ea1",
-                                        "version":"1.0.1"
+                                        "version":"1.0.2"
                                     }
                                 }'
                             )
