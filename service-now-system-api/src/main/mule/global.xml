@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway" xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:servicenow="http://www.mulesoft.org/schema/mule/servicenow" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/servicenow http://www.mulesoft.org/schema/mule/servicenow/current/mule-servicenow.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd">
+	<servicenow:config name="ServiceNow_Config" doc:name="ServiceNow Config" doc:id="ad5fabb4-cc78-419d-a507-59bed7507767" >
+		<servicenow:basic-connection username="${serviceNow.username}" password="${secure::serviceNow.password}" serviceAddress="${serviceNow.serviceAddress}" >
+			<servicenow:transport >
+				<servicenow:basic-auth-http-message-dispatcher-provider username="admin" password="PbvW3Tq@a3-Y" />
+			</servicenow:transport>
+		</servicenow:basic-connection>
+	</servicenow:config>
+	<http:listener-config name="HTTP_Listener_config1" doc:name="HTTP Listener config" doc:id="c3e4c202-0059-4dc5-a41b-0d6db0aa6d58" >
+		<http:listener-connection host="0.0.0.0" port="8085" />
+	</http:listener-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="7943eba8-8bc5-494c-9597-434d043c6d26" file="properties/properties-prod.yaml" />
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="d37c4a95-37a1-447d-9fae-712f1c6b5e0a" file="secure.properties/secure-properties-${env}.yaml" key="Mule1234" >
+		<secure-properties:encrypt algorithm="Blowfish" />
+	</secure-properties:config>
+	<global-property doc:name="Global Property" doc:id="075b4cab-5fe4-4529-8efd-a6f0475a3fc4" name="env" value="${env}" />
+	<api-gateway:autodiscovery apiId="${api.id}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="7110a2c0-e024-4a07-a857-8b127c3dce9c" flowRef="servicenow-system-api-main" />
+</mule>

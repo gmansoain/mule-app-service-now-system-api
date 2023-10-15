@@ -1,0 +1,34 @@
+#%RAML 1.0 DataType
+type: object
+properties:
+  incidentId: string
+  sys_id: string
+  description: string
+  priority?:
+    enum:
+      - Critical
+      - High
+      - Moderate
+      - Low
+      - Planning
+  state:
+    enum:
+      - New
+      - In Progress
+      - On Hold
+      - Resolved
+      - Closed
+      - Canceled
+  urgency?:
+    enum:
+      - High
+      - Medium
+      - Low
+  impact?:
+    enum:
+      - High
+      - Medium
+      - Low
+examples: 
+  ex1: !include ../examples/IncidentExample1.raml
+  ex2: !include ../examples/IncidentExample2.raml

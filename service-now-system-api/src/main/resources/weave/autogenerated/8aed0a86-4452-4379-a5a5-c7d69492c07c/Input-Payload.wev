@@ -1,0 +1,12 @@
+%dw 2.0
+
+type auto_8aed0a86_4452_4379_a5a5_c7d69492c07c_Input_Payload = {
+  comments: String, 
+  urgency?: "High" | "Low" | "Medium", 
+  impact?: "High" | "Low" | "Medium", 
+  description: String, 
+  state: "New" | "On Hold" | "Closed" | "In Progress" | "Resolved" | "Canceled", 
+  priority?: "High" | "Moderate" | "Low" | "Critical" | "Planning", 
+  _?: Any
+}
+

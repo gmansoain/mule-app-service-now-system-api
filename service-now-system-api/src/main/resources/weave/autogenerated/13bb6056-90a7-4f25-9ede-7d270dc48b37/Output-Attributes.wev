@@ -1,0 +1,8 @@
+%dw 2.0
+
+type auto_13bb6056_90a7_4f25_9ede_7d270dc48b37_Output_Attributes = {|
+  additionalTransportData?: { _?: String }, 
+  protocolHeaders?: { _?: String }
+|} {"typeAlias": "SoapAttributes",
+"typeId": "com.mulesoft.connectors.servicenow.api.SoapAttributes"}
+

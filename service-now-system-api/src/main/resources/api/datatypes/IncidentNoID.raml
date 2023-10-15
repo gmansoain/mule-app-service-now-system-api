@@ -1,0 +1,24 @@
+#%RAML 1.0 DataType
+type: object
+properties:
+  description: string
+  comments?: string
+  state:
+    enum:
+      - New
+      - In Progress
+      - On Hold
+      - Resolved
+      - Closed
+      - Canceled
+  urgency?:
+    enum:
+      - High
+      - Medium
+      - Low
+  impact?:
+    enum:
+      - High
+      - Medium
+      - Low
+example: !include ../examples/IncidentNoIDExample1.raml

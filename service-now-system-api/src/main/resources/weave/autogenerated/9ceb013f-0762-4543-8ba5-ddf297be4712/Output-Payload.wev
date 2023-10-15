@@ -1,0 +1,12 @@
+%dw 2.0
+
+type auto_9ceb013f_0762_4543_8ba5_ddf297be4712_Output_Payload = {
+  urgency?: "High" | "Low" | "Medium", 
+  impact?: "High" | "Low" | "Medium", 
+  description: String, 
+  state: "New" | "On Hold" | "Closed" | "In Progress" | "Resolved" | "Canceled", 
+  incidentId: String, 
+  priority?: "High" | "Moderate" | "Low" | "Critical" | "Planning", 
+  _?: Any
+}
+

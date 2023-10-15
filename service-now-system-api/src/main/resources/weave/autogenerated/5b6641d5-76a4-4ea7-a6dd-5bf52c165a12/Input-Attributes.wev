@@ -1,0 +1,28 @@
+%dw 2.0
+
+type auto_5b6641d5_76a4_4ea7_a6dd_5bf52c165a12_Input_Attributes = {|
+  clientCertificate?: {|
+    publicKey?: {|  |}, 
+    "type"?: String, 
+    encoded?: Binary
+  |}, 
+  headers: {|  |}, 
+  listenerPath: String, 
+  method: String, 
+  queryParams: {|
+    state?: "New" | "On Hold" | "Closed" | "In Progress" | "Resolved" | "Canceled", 
+    priority?: "High" | "Moderate" | "Low" | "Critical" | "Planning", 
+    urgency?: "High" | "Low" | "Medium", 
+    impact?: "High" | "Low" | "Medium"
+  |}, 
+  queryString: String, 
+  relativePath: String, 
+  remoteAddress: String, 
+  requestPath: String, 
+  requestUri: String, 
+  scheme: String, 
+  uriParams: {| incidentId: String |}, 
+  version: String, 
+  localAddress: String
+|}
+

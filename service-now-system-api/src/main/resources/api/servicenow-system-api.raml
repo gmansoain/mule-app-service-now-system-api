@@ -1,0 +1,90 @@
+#%RAML 1.0
+title: ServiceNow System API
+mediaType: 
+- application/json
+
+traits:
+  client-id-required:
+    headers:
+      client_id:
+        type: string
+      client_secret:
+        type: string
+    responses:
+      401:
+        description: Unauthorized or invalid client application credentials
+      500:
+        description: Bad response from authorization server, or WSDL SOAP Fault error
+
+types:
+  Incident: !include datatypes/Incident.raml
+  IncidentNoID: !include datatypes/IncidentNoID.raml
+
+/incidents:
+  is: [client-id-required]
+  get:
+    description: Retrieve All Incidents
+    responses:
+      200:
+        body:
+          type: Incident[]
+  post:
+    description: Create a New Incident
+    body:
+      type: IncidentNoID
+    responses:
+      201:
+        description: Incident created successfully
+      400:
+        description: Bad request
+
+  
+/incidents/{incidentId}:
+  is: [client-id-required]
+  get:
+    description: Retrieve Incident details
+    responses:
+      200:
+        body:
+          type: Incident
+      404:
+        description: Incident not found
+      
+  put:
+    description: Modify Incident details
+    queryParameters:
+      state?: 
+        enum:
+          - New
+          - In Progress
+          - On Hold
+          - Resolved
+          - Closed
+          - Canceled
+      urgency?:
+        enum:
+          - High
+          - Medium
+          - Low
+      impact?:
+        enum:
+          - High
+          - Medium
+          - Low
+    responses:
+      200: 
+        description: Incident modified successfully
+      400:
+        description: Bad request
+      404:
+        description: Incident not found
+
+  delete:
+    description: Delete Incident
+    responses:
+      204: 
+        description: Incident deleted successfully
+      404:
+        description: Incident not found
+
+    

@@ -1,0 +1,4 @@
+%dw 2.0
+
+type auto_13bb6056_90a7_4f25_9ede_7d270dc48b37_Output_Payload = Array<{  sys_id: String,   urgency?: "High" | "Low" | "Medium",   impact?: "High" | "Low" | "Medium",   description: String,   state: "New" | "On Hold" | "Closed" | "In Progress" | "Resolved" | "Canceled",   incidentId: String,   priority?: "High" | "Moderate" | "Low" | "Critical" | "Planning",   _?: Any}>
+

@@ -1,0 +1,3 @@
+serviceNow:
+  username: "admin"
+  serviceAddress: "https://dev25750.service-now.com"
