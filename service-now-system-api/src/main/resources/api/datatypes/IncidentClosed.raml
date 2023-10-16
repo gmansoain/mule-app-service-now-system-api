@@ -1,0 +1,19 @@
+#%RAML 1.0 DataType
+type: object
+properties:
+  caller_id: string
+  close_code:
+    enum:
+      - Duplicate
+      - Known Error
+      - No resolution provided
+      - Resolved by caller
+      - Resolved by change
+      - Resolved by problem
+      - Resolved by request
+      - Solution provided
+      - Workaround provided
+      - User error
+  close_notes: string
+  parent_incident: string
+example: !include ../examples/IncidentClosedExample1.raml

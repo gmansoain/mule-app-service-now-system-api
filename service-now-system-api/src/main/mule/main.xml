@@ -10,6 +10,22 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="9ceb2c1c-99fd-4f5e-b9d4-257fd5dbec01" >
 		<http:listener-connection host="0.0.0.0" port="8081" />
 	</http:listener-config>
+	<sub-flow name="CloseIncidentSetVariables" doc:id="c5d0ea54-f419-4583-8133-3c17381f710e" >
+		<scatter-gather doc:name="Scatter-Gather" doc:id="78c164bf-cabb-492d-9646-bf7ba80057f2">
+			<route>
+				<set-variable value="#[payload.caller_id]" doc:name="caller_id" doc:id="9d4b5893-a734-41d3-a2a8-fb0323534d0c" variableName="caller_id" />
+			</route>
+			<route>
+				<set-variable value="#[payload.close_code]" doc:name="close_code" doc:id="91b396a5-95bb-4954-b80c-921dc15fd694" variableName="close_code" />
+			</route>
+			<route>
+				<set-variable value="#[payload.close_notes]" doc:name="close_notes" doc:id="65abbbb8-a68a-48b2-ac02-145f1009047d" variableName="close_notes" />
+			</route>
+			<route>
+				<set-variable value="#[payload.parent_incident]" doc:name="parent_incident" doc:id="5f69fbc8-e12c-49fb-86eb-fa935262063e" variableName="parent_incident" />
+			</route>
+		</scatter-gather>
+	</sub-flow>
 	<sub-flow name="getSysId" doc:id="10d388d5-2adb-4d20-be5e-c1831623e4d5" >
 		<scatter-gather doc:name="Scatter-Gather" doc:id="2f4f254b-c729-45ff-8696-9afc2721fac4">
 			<route>
@@ -289,9 +305,8 @@ ns ns0 http://www.service-now.com/incident
 	        case str: "New" -> {"state": 1}
 	        case str: "In Progress" -> {"state": 2}
 	        case str: "On Hold" -> {"state": 3}
-	        case str: "Resolved" -> {"state": 4}
-	        case str: "Closed" -> {"state": 7}
-	        case str: "Canceled" -> {"state": 8}
+       		else -> null
+
     	},
     	ns0#urgency: vars.urgency match {
 	    	case str: "High" -> {"urgency": 1}
@@ -334,6 +349,48 @@ ns ns0 http://www.service-now.com/incident
 		</ee:transform>
 		<servicenow:invoke doc:name="Invoke" doc:id="f2c8ffe5-1eee-4b44-99cd-7474a5da6fd1" config-ref="ServiceNow_Config" service="incident" operation="deleteRecord"/>
 		<ee:transform doc:name="Transform Message" doc:id="66742a3a-0c9b-4a41-bf62-12f91bebbd24" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="closeIncident" doc:id="204ab57f-3c54-43c9-b77f-f3958e29f0f4" >
+		<scatter-gather doc:name="Scatter-Gather" doc:id="13a6a3e7-862a-432e-971b-84b0a876e6be" >
+			<route >
+				<flow-ref doc:name="closeIncidentSetVariables" doc:id="e377f9d5-5508-49be-ad17-c74e9571f85e" name="CloseIncidentSetVariables" />
+			</route>
+			<route >
+				<flow-ref doc:name="getSysId" doc:id="4e5dfa69-6d1a-462f-a870-950eea883671" name="getSysId" />
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Transform Message" doc:id="dcb33766-b3cf-4fbb-a590-5c72408dcbaa" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://www.service-now.com/incident
+---
+{
+	ns0#update: {
+		ns0#sys_id: vars.sys_id,
+		ns0#state: vars.state match {
+	        case str: "Resolved" -> {"state": 6}
+	        case str: "Closed" -> {"state": 7}
+	        case str: "Canceled" -> {"state": 8}
+       		else -> null
+       		},
+    	ns0#caller_id: vars.caller_id,
+    	ns0#close_code: vars.close_code,
+    	ns0#close_notes: vars.close_notes,
+    	ns0#parent_incident: vars.parent_incident
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<servicenow:invoke operation="update" doc:name="Invoke" doc:id="9dcc5cb7-4255-4838-9b53-e2c24fa8f8ab" config-ref="ServiceNow_Config" service="incident"/>
+		<ee:transform doc:name="Transform Message" doc:id="38e8ee31-c95b-469e-b406-06cee3e8a8a1" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json

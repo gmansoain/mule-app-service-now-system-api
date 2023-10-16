@@ -19,6 +19,7 @@ traits:
 types:
   Incident: !include datatypes/Incident.raml
   IncidentNoID: !include datatypes/IncidentNoID.raml
+  IncidentClosed: !include datatypes/IncidentClosed.raml
 
 /incidents:
   is: [client-id-required]
@@ -58,9 +59,6 @@ types:
           - New
           - In Progress
           - On Hold
-          - Resolved
-          - Closed
-          - Canceled
       urgency?:
         enum:
           - High
@@ -87,4 +85,21 @@ types:
       404:
         description: Incident not found
 
-    
+/incidents/{incidentId}/close:
+  put:
+    queryParameters:
+      state:
+        enum:
+          - Resolved
+          - Closed
+          - Canceled
+    body:
+      type: IncidentClosed
+    responses:
+      200: 
+        description: Incident closed successfully
+      400:
+        description: Bad request
+      404:
+        description: Incident not found
+      
