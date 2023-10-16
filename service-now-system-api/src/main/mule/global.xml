@@ -14,7 +14,7 @@ http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/m
 			</servicenow:transport>
 		</servicenow:basic-connection>
 	</servicenow:config>
-	<http:listener-config name="HTTP_Listener_config1" doc:name="HTTP Listener config" doc:id="c3e4c202-0059-4dc5-a41b-0d6db0aa6d58" >
+	<http:listener-config name="HTTP_Listener_TEST" doc:name="HTTP Listener config" doc:id="c3e4c202-0059-4dc5-a41b-0d6db0aa6d58" >
 		<http:listener-connection host="0.0.0.0" port="8085" />
 	</http:listener-config>
 	<configuration-properties doc:name="Configuration properties" doc:id="7943eba8-8bc5-494c-9597-434d043c6d26" file="properties/properties-prod.yaml" />

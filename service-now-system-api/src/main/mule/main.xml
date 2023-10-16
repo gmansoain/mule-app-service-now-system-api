@@ -10,6 +10,37 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="9ceb2c1c-99fd-4f5e-b9d4-257fd5dbec01" >
 		<http:listener-connection host="0.0.0.0" port="8081" />
 	</http:listener-config>
+	<sub-flow name="getSysId" doc:id="10d388d5-2adb-4d20-be5e-c1831623e4d5" >
+		<scatter-gather doc:name="Scatter-Gather" doc:id="2f4f254b-c729-45ff-8696-9afc2721fac4">
+			<route>
+				<set-variable value="#[attributes.queryParams.impact]" doc:name="impact" doc:id="e244c146-2137-4d2c-9009-b0e3b053fbb7" variableName="impact" />
+			</route>
+			<route>
+				<set-variable value="#[attributes.queryParams.urgency]" doc:name="urgency" doc:id="18e292f6-d67f-41aa-9ec9-fd95da046542" variableName="urgency" />
+			</route>
+			<route>
+				<set-variable value="#[attributes.queryParams.state]" doc:name="state" doc:id="7568df71-afb5-49c8-8c1d-c53d15097cf8" variableName="state" />
+			</route>
+			<route>
+				<set-variable value="#[attributes.uriParams.incidentId]" doc:name="incidentId" doc:id="effb8a34-5d8a-442a-ada4-78b4f1d9bdf1" variableName="incidentId" />
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Transform Message" doc:id="972a72a4-3b2c-4a81-abf4-f969502e5ba4">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://www.service-now.com/incident
+---
+{
+	ns0#getRecords: {
+		ns0#number: vars.incidentId
+		}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<servicenow:invoke doc:name="Invoke" doc:id="e7d9e44f-8c5f-412c-bc6a-c5a8b654f945" config-ref="ServiceNow_Config" service="incident" operation="getRecords" />
+		<set-variable value="#[payload.body.getRecordsResponse.getRecordsResult.sys_id]" doc:name="sys_id" doc:id="7abed028-8449-4b46-bfc2-d5297a02d338" variableName="sys_id" />
+	</sub-flow>
 	<flow name="getAllIncidents" doc:id="13bb6056-90a7-4f25-9ede-7d270dc48b37" >
 		<ee:transform doc:name="Transform Message" doc:id="2250e366-6e6b-4018-8695-374a061f2403" >
 			<ee:message >
@@ -244,35 +275,7 @@ payload]]></ee:set-payload>
 		<logger level="INFO" doc:name="Logger" doc:id="9b6e7608-3737-49d3-aa07-ea77d6f92bc8" message="#[payload]" />
 	</flow>
 	<flow name="modifyIncidentById" doc:id="5b6641d5-76a4-4ea7-a6dd-5bf52c165a12" >
-		<scatter-gather doc:name="Scatter-Gather" doc:id="2f4f254b-c729-45ff-8696-9afc2721fac4" >
-			<route >
-				<set-variable value="#[attributes.queryParams.impact]" doc:name="impact" doc:id="e244c146-2137-4d2c-9009-b0e3b053fbb7" variableName="impact"/>
-			</route>
-			<route >
-				<set-variable value="#[attributes.queryParams.urgency]" doc:name="urgency" doc:id="18e292f6-d67f-41aa-9ec9-fd95da046542" variableName="urgency"/>
-			</route>
-			<route >
-				<set-variable value="#[attributes.queryParams.state]" doc:name="state" doc:id="7568df71-afb5-49c8-8c1d-c53d15097cf8" variableName="state"/>
-			</route>
-			<route >
-				<set-variable value="#[attributes.uriParams.incidentId]" doc:name="incidentId" doc:id="effb8a34-5d8a-442a-ada4-78b4f1d9bdf1" variableName="incidentId"/>
-			</route>
-		</scatter-gather>
-		<ee:transform doc:name="Transform Message" doc:id="972a72a4-3b2c-4a81-abf4-f969502e5ba4">
-			<ee:message>
-				<ee:set-payload><![CDATA[%dw 2.0
-output application/xml
-ns ns0 http://www.service-now.com/incident
----
-{
-	ns0#getRecords: {
-		ns0#number: vars.incidentId
-		}
-}]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
-		<servicenow:invoke doc:name="Invoke" doc:id="e7d9e44f-8c5f-412c-bc6a-c5a8b654f945" config-ref="ServiceNow_Config" service="incident" operation="getRecords"/>
-		<set-variable value="#[payload.body.getRecordsResponse.getRecordsResult.sys_id]" doc:name="sys_id" doc:id="7abed028-8449-4b46-bfc2-d5297a02d338" variableName="sys_id"/>
+		<flow-ref doc:name="getSysId" doc:id="068e32c3-7b4a-4e60-ad40-2d63e89f4aea" name="getSysId" />
 		<ee:transform doc:name="Transform Message" doc:id="cec878b2-e237-4392-9cb5-a38a3420d06f" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -315,6 +318,7 @@ payload]]></ee:set-payload>
 		</ee:transform>
 	</flow>
 	<flow name="deleteIncident" doc:id="21514b8f-a483-4895-b6c9-d0ba59c5ee6b" >
+		<flow-ref doc:name="getSysId" doc:id="521c731c-0d58-45a0-8f1d-b3f8a425383f" name="getSysId"/>
 		<ee:transform doc:name="Transform Message" doc:id="5ec2fb41-79f8-44d9-bb93-9baca3a5b49f" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -323,7 +327,8 @@ ns ns0 http://www.service-now.com/incident
 ---
 {
 	ns0#deleteRecord: {
-		ns0#sys_id: attributes.uriParams.incidentId		}
+		ns0#sys_id: vars.sys_id
+		}
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
