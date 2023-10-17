@@ -124,7 +124,7 @@ output application/json
         <flow-ref doc:name="Flow Reference" doc:id="7ca79123-afd6-4bb2-9991-acff28b1a439" name="modifyIncidentById" />
     </flow>
     <flow name="delete:\incidents\(incidentId):servicenow-system-api-config">
-        <flow-ref doc:name="Flow Reference" doc:id="cd9a43b9-6d17-4fa5-8302-3eaed27e7820" name="deleteIncident" />
+        <flow-ref doc:name="Flow Reference" doc:id="cd9a43b9-6d17-4fa5-8302-3eaed27e7820" name="deleteIncidentById" />
     </flow>
     <flow name="get:\incidents\(incidentId):servicenow-system-api-config">
         <flow-ref doc:name="Flow Reference" doc:id="e80a1c3d-f700-4bbc-a901-8e0e53e134a2" name="getIncidentById" />
@@ -136,6 +136,6 @@ output application/json
         <flow-ref doc:name="Flow Reference" doc:id="f194c7a7-18bb-441d-a37e-229640ae191f" name="getAllIncidents" />
     </flow>
     <flow name="put:\incidents\(incidentId)\close:application\json:servicenow-system-api-config">
-		<flow-ref doc:name="Flow Reference" doc:id="faed82ec-8240-4e77-9ff2-3d1b2c1a4dc3" name="closeIncident"/>
+		<flow-ref doc:name="Flow Reference" doc:id="faed82ec-8240-4e77-9ff2-3d1b2c1a4dc3" name="closeIncidentById"/>
     </flow>
 </mule>

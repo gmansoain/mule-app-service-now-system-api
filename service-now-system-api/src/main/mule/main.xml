@@ -10,7 +10,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="9ceb2c1c-99fd-4f5e-b9d4-257fd5dbec01" >
 		<http:listener-connection host="0.0.0.0" port="8081" />
 	</http:listener-config>
-	<sub-flow name="CloseIncidentSetVariables" doc:id="c5d0ea54-f419-4583-8133-3c17381f710e" >
+	<sub-flow name="subFlow-CloseIncidentSetVariables" doc:id="c5d0ea54-f419-4583-8133-3c17381f710e" >
 		<scatter-gather doc:name="Scatter-Gather" doc:id="78c164bf-cabb-492d-9646-bf7ba80057f2">
 			<route>
 				<set-variable value="#[payload.caller_id]" doc:name="caller_id" doc:id="9d4b5893-a734-41d3-a2a8-fb0323534d0c" variableName="caller_id" />
@@ -26,7 +26,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			</route>
 		</scatter-gather>
 	</sub-flow>
-	<sub-flow name="getSysId" doc:id="10d388d5-2adb-4d20-be5e-c1831623e4d5" >
+	<sub-flow name="subFlow-getSysId" doc:id="10d388d5-2adb-4d20-be5e-c1831623e4d5" >
 		<scatter-gather doc:name="Scatter-Gather" doc:id="2f4f254b-c729-45ff-8696-9afc2721fac4">
 			<route>
 				<set-variable value="#[attributes.queryParams.impact]" doc:name="impact" doc:id="e244c146-2137-4d2c-9009-b0e3b053fbb7" variableName="impact" />
@@ -37,11 +37,8 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			<route>
 				<set-variable value="#[attributes.queryParams.state]" doc:name="state" doc:id="7568df71-afb5-49c8-8c1d-c53d15097cf8" variableName="state" />
 			</route>
-			<route>
-				<set-variable value="#[attributes.uriParams.incidentId]" doc:name="incidentId" doc:id="effb8a34-5d8a-442a-ada4-78b4f1d9bdf1" variableName="incidentId" />
-			</route>
 		</scatter-gather>
-		<ee:transform doc:name="Transform Message" doc:id="972a72a4-3b2c-4a81-abf4-f969502e5ba4">
+		<ee:transform doc:name="Prepare Request" doc:id="972a72a4-3b2c-4a81-abf4-f969502e5ba4">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
 output application/xml
@@ -49,16 +46,20 @@ ns ns0 http://www.service-now.com/incident
 ---
 {
 	ns0#getRecords: {
-		ns0#number: vars.incidentId
+		ns0#number: vars.incident_id
 		}
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<servicenow:invoke doc:name="Invoke" doc:id="e7d9e44f-8c5f-412c-bc6a-c5a8b654f945" config-ref="ServiceNow_Config" service="incident" operation="getRecords" />
+		<logger level="INFO" doc:name="Triggered getSysId subflow" doc:id="e67dcd02-a6ac-4303-8ecc-e60dee50f0ba" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"message": "Triggered getSysId SubFlow",&#10;	"getSysId_Parameters": {&#10;		"incident_id": vars.incident_id,&#10;		"impact": vars.impact, &#10;		"urgency": vars.urgency, &#10;		"state": vars.state&#10;	}&#10;	&#10;}]'/>
+		<servicenow:invoke doc:name="Incident - getRecords" doc:id="e7d9e44f-8c5f-412c-bc6a-c5a8b654f945" config-ref="ServiceNow_Config" service="incident" operation="getRecords" />
 		<set-variable value="#[payload.body.getRecordsResponse.getRecordsResult.sys_id]" doc:name="sys_id" doc:id="7abed028-8449-4b46-bfc2-d5297a02d338" variableName="sys_id" />
+		<logger level="INFO" doc:name="Finished getSysId Request to ServiceNow" doc:id="94e66ab7-6e9e-4e6b-9cc1-9c9fb655f56b" message='Finished getSysId Request to ServiceNow. sys_id = #[vars.sys_id]'/>
 	</sub-flow>
 	<flow name="getAllIncidents" doc:id="13bb6056-90a7-4f25-9ede-7d270dc48b37" >
-		<ee:transform doc:name="Transform Message" doc:id="2250e366-6e6b-4018-8695-374a061f2403" >
+		<http:listener doc:name="Listener" doc:id="a30304e3-a876-4dd9-bc6e-be387f464549" config-ref="HTTP_Listener_TEST" path="/incidents" allowedMethods="GET"/>
+		<logger level="INFO" doc:name="Received GET ALL INCIDENTS request" doc:id="091389ca-b2d6-418d-8e0e-9c4b878ff389" message="Received GET ALL INCIDENTS Request"/>
+		<ee:transform doc:name="Prepare Request" doc:id="2250e366-6e6b-4018-8695-374a061f2403" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/xml
@@ -71,8 +72,9 @@ ns ns0 http://www.service-now.com/incident
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<servicenow:invoke service="incident" operation="getRecords" doc:name="Invoke" doc:id="b959d3ed-15e5-44f4-b81e-a70db0d22ba8" config-ref="ServiceNow_Config"/>
-		<ee:transform doc:name="Transform Message" doc:id="39a11271-869e-43e4-a2c1-3cc900ea03ea" >
+		<servicenow:invoke service="incident" operation="getRecords" doc:name="Incident - getRecords" doc:id="b959d3ed-15e5-44f4-b81e-a70db0d22ba8" config-ref="ServiceNow_Config"/>
+		<logger level="INFO" doc:name="Finished GET ALL INCIDENTS Request. Preparing response" doc:id="9e84ee91-7be7-422d-914c-dd12ea54cdb7" message="Finished GET ALL INCIDENTS Request. Preparing response"/>
+		<ee:transform doc:name="Filter out fields for Response" doc:id="39a11271-869e-43e4-a2c1-3cc900ea03ea" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
@@ -93,7 +95,7 @@ results mapObject (
 )]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<ee:transform doc:name="Transform Message" doc:id="ad82be0a-b2c3-481b-b00a-1de165029c08" >
+		<ee:transform doc:name="Translate State, Urgency and Impact into strings" doc:id="ad82be0a-b2c3-481b-b00a-1de165029c08" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
@@ -108,9 +110,9 @@ fun getState(state) = state match {
         case "1" -> "New"
         case "2" -> "In Progress"
         case "3" -> "On Hold"
-        case "4" -> "Resolved"
-        case "5" -> "Closed"
-        case "6" -> "Canceled"
+        case "6" -> "Resolved"
+        case "7" -> "Closed"
+        case "8" -> "Canceled"
         else -> null
 }
 
@@ -149,7 +151,9 @@ payload mapObject (
 		</ee:transform>
 	</flow>
 	<flow name="createIncident" doc:id="8aed0a86-4452-4379-a5a5-c7d69492c07c" >
-		<ee:transform doc:name="Transform Message" doc:id="0a930943-8c60-496f-bfe7-b83b6d2d057f" >
+		<http:listener doc:name="Listener" doc:id="535f3f36-a426-4982-b174-945622259a93" config-ref="HTTP_Listener_TEST" path="/incidents" allowedMethods="POST"/>
+		<logger level="INFO" doc:name="Received CREATE INCIDENT Request" doc:id="1ee0ea46-2864-4493-b5c5-3fbc73d11c19" message="Received CREATE INCIDENT Request. Request Details = #[payload]"/>
+		<ee:transform doc:name="Prepare Request" doc:id="0a930943-8c60-496f-bfe7-b83b6d2d057f" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/xml
@@ -181,18 +185,23 @@ output application/xml
 ]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<servicenow:invoke doc:name="Invoke" doc:id="4cdb8f6a-bca5-4f18-b18c-9f4518122616" config-ref="ServiceNow_Config" service="incident" operation="insert"/>
-		<ee:transform doc:name="Transform Message" doc:id="5cb6fad3-2af0-44d9-b71a-c2e1e0494f00" >
-			<ee:message >
-				<ee:set-payload ><![CDATA[%dw 2.0
+		<servicenow:invoke doc:name="Incident - Insert" doc:id="4cdb8f6a-bca5-4f18-b18c-9f4518122616" config-ref="ServiceNow_Config" service="incident" operation="insert"/>
+		<ee:transform doc:name="Transform Message" doc:id="5cb6fad3-2af0-44d9-b71a-c2e1e0494f00">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
 payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
+		<logger level="INFO" doc:name="Finished CREATE INCIDENT Request. Preparing response" doc:id="0bf40bfb-19c4-4d65-b1c7-8b28d7a1ce9b" message="Finished CREATE INCIDENT Request with the following details: sys_id=#[payload.body.insertResponse.sys_id], incident_id=#[payload.body.insertResponse.number] Preparing response."/>
+		<set-payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{   "message": "Incident created successfully",&#10;   "sys_id": payload.body.insertResponse.sys_id,&#10;    "incident_id": payload.body.insertResponse.number&#10;}]' doc:name="Set Response" doc:id="21db3f70-40c6-4829-8192-ce8a08d9a824" />
 	</flow>
 	<flow name="getIncidentById" doc:id="9ceb013f-0762-4543-8ba5-ddf297be4712" >
-		<ee:transform doc:name="Transform Message" doc:id="ef577bcc-5782-4f2a-b875-33ff6bf57f48" >
+		<http:listener doc:name="Listener" doc:id="a0704428-d172-4d03-8076-52fa8e049b60" config-ref="HTTP_Listener_TEST" path="/incidents/{incidentId}" allowedMethods="GET"/>
+		<set-variable value="#[attributes.uriParams.incidentId]" doc:name="incident_id" doc:id="f56e7f79-a4bb-4e2b-b4eb-1a43b138e899" variableName="incident_id"/>
+		<logger level="INFO" doc:name="Received GET INCIDENT BY ID Request" doc:id="bc6c8a8a-d664-408e-b74c-f41eb3e2b74e" message="Received GET INCIDENT BY ID Request. Incident ID = #[vars.incident_id]"/>
+		<ee:transform doc:name="Prepare Request" doc:id="ef577bcc-5782-4f2a-b875-33ff6bf57f48" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/xml
@@ -205,8 +214,9 @@ ns ns0 http://www.service-now.com/incident
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<servicenow:invoke doc:name="Invoke" doc:id="a92f1973-9423-403c-93f8-783671bd4b6e" service="incident" operation="getRecords" config-ref="ServiceNow_Config"/>
-		<ee:transform doc:name="Transform Message" doc:id="c7efba8d-3fca-4231-910a-84dadcca0641" >
+		<servicenow:invoke doc:name="Incident - getRecords" doc:id="a92f1973-9423-403c-93f8-783671bd4b6e" service="incident" operation="getRecords" config-ref="ServiceNow_Config"/>
+		<logger level="INFO" doc:name="Finished GET INCIDENT BY ID Request. Preparing Response" doc:id="a3369f96-9fef-4fe8-b20d-7085a65a41ed" message="Finished GET INCIDENT BY ID Request. Preparing Response. Incident ID = #[vars.incident_id]"/>
+		<ee:transform doc:name="Filter out fields for Response" doc:id="c7efba8d-3fca-4231-910a-84dadcca0641" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
@@ -223,7 +233,7 @@ output application/json
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<ee:transform doc:name="Transform Message" doc:id="a26ae5dd-99bf-4925-8e13-b6d2d230dfdc" >
+		<ee:transform doc:name="Translate State, Priority, Urgency and Impact into strings" doc:id="a26ae5dd-99bf-4925-8e13-b6d2d230dfdc" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
@@ -238,9 +248,9 @@ fun getState(state) = state match {
         case "1" -> "New"
         case "2" -> "In Progress"
         case "3" -> "On Hold"
-        case "4" -> "Resolved"
-        case "5" -> "Closed"
-        case "6" -> "Canceled"
+        case "6" -> "Resolved"
+        case "7" -> "Closed"
+        case "8" -> "Canceled"
         else -> null
 }
 
@@ -273,9 +283,10 @@ fun getPriority(priority) = priority match {
 ]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
+		<logger level="INFO" doc:name="Finished GET INCIDENT BY ID Request. Log Response" doc:id="e8e65aea-14b3-4066-abcd-46d2b50ea822" message='Finished GET INCIDENT BY ID Request.  Incident ID = #[vars.incident_id]. Response: #[payload]'/>
 	</flow>
 	<flow name="notifyIncidentChange" doc:id="e68da193-8a0a-49be-8aef-3eba1f8ea606" >
-		<servicenow:new-or-updated-record-listener tableName="incident" doc:name="On New / Updated Record" doc:id="78d95473-b2e1-4414-be9e-2ac792e8a7fe" config-ref="ServiceNow_Config">
+		<servicenow:new-or-updated-record-listener tableName="incident" doc:name="On New / Updated - Incident" doc:id="78d95473-b2e1-4414-be9e-2ac792e8a7fe" config-ref="ServiceNow_Config">
 			<scheduling-strategy >
 				<fixed-frequency />
 			</scheduling-strategy>
@@ -291,8 +302,11 @@ payload]]></ee:set-payload>
 		<logger level="INFO" doc:name="Logger" doc:id="9b6e7608-3737-49d3-aa07-ea77d6f92bc8" message="#[payload]" />
 	</flow>
 	<flow name="modifyIncidentById" doc:id="5b6641d5-76a4-4ea7-a6dd-5bf52c165a12" >
-		<flow-ref doc:name="getSysId" doc:id="068e32c3-7b4a-4e60-ad40-2d63e89f4aea" name="getSysId" />
-		<ee:transform doc:name="Transform Message" doc:id="cec878b2-e237-4392-9cb5-a38a3420d06f" >
+		<http:listener doc:name="Listener" doc:id="509970ee-5289-45e6-83c5-dea6cdd0a322" config-ref="HTTP_Listener_TEST" path="/incidents/{incidentId}" allowedMethods="PUT"/>
+		<set-variable value="#[attributes.uriParams.incidentId]" doc:name="incident_id" doc:id="d7357f2a-2aae-4584-b690-2ac283a22d2d" variableName="incident_id"/>
+		<logger level="INFO" doc:name="Received MODIFY INCIDENT BY ID Request" doc:id="8af65895-b329-49f0-8075-9ee99c6da376" message="Received MODIFY INCIDENT BY ID Request. Incident ID = #[vars.incident_id]"/>
+		<flow-ref doc:name="getSysId" doc:id="068e32c3-7b4a-4e60-ad40-2d63e89f4aea" name="subFlow-getSysId" />
+		<ee:transform doc:name="Prepare Request" doc:id="cec878b2-e237-4392-9cb5-a38a3420d06f" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/xml
@@ -322,7 +336,9 @@ ns ns0 http://www.service-now.com/incident
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<servicenow:invoke service="incident" operation="update" doc:name="Invoke" doc:id="cbd0a75b-716c-40d2-8f1f-1b0cab740353" config-ref="ServiceNow_Config"/>
+		<logger level="INFO" doc:name="Log Parameters of the Request" doc:id="a3a4adfd-bf90-4624-8abc-7f7ceef619ec" message='#[output application/json&#10;---&#10;{&#10;	"message": "Sending Update Incident Request to ServiceNow",&#10;	"parameters": {&#10;		"sys_id": vars.sys_id,&#10;		"state": vars.state,&#10;		"urgency": vars.urgency,&#10;		"impact": vars.impact&#10;	}&#10;}]'/>
+		<servicenow:invoke service="incident" operation="update" doc:name="Incident - Update" doc:id="cbd0a75b-716c-40d2-8f1f-1b0cab740353" config-ref="ServiceNow_Config"/>
+		<logger level="INFO" doc:name="Finished MODIFY INCIDENT BY ID Request" doc:id="c3d13c13-7a24-43ae-a199-26aa4e4678a1" message="Finished MODIFY INCIDENT BY ID Request. Incident ID = #[vars.incident_id]"/>
 		<ee:transform doc:name="Transform Message" doc:id="e7098169-8262-4687-8a74-1024b71da67b" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -331,10 +347,15 @@ output application/json
 payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="d46a8ce4-544d-4567-b0a1-955098aa77c0" message="#[payload]"/>
+		<set-payload value='#["Incident modified successfully"]' doc:name="Success Message" doc:id="5263a5b0-7c99-456c-a41d-be5e3a8ac34f" />
 	</flow>
-	<flow name="deleteIncident" doc:id="21514b8f-a483-4895-b6c9-d0ba59c5ee6b" >
-		<flow-ref doc:name="getSysId" doc:id="521c731c-0d58-45a0-8f1d-b3f8a425383f" name="getSysId"/>
-		<ee:transform doc:name="Transform Message" doc:id="5ec2fb41-79f8-44d9-bb93-9baca3a5b49f" >
+	<flow name="deleteIncidentById" doc:id="21514b8f-a483-4895-b6c9-d0ba59c5ee6b" >
+		<http:listener doc:name="Listener" doc:id="53cb908e-9d6e-49bf-87d2-d2f9b45bdd24" config-ref="HTTP_Listener_TEST" path="/incidents/{incidentId}" allowedMethods="DELETE"/>
+		<set-variable value="#[attributes.uriParams.incidentId]" doc:name="incident_id" doc:id="02278a2c-0f48-4658-a6b6-ba34d7fd9220" variableName="incident_id"/>
+		<logger level="INFO" doc:name="Received DELETE INCIDENT BY ID Request" doc:id="ac0017c8-5725-4b2e-9d4e-dc1348b3b7a0" message="Received DELETE INCIDENT BY ID Request. Incident ID = #[vars.incident_id]"/>
+		<flow-ref doc:name="getSysId" doc:id="521c731c-0d58-45a0-8f1d-b3f8a425383f" name="subFlow-getSysId"/>
+		<ee:transform doc:name="Prepare Request" doc:id="5ec2fb41-79f8-44d9-bb93-9baca3a5b49f" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/xml
@@ -347,7 +368,9 @@ ns ns0 http://www.service-now.com/incident
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<servicenow:invoke doc:name="Invoke" doc:id="f2c8ffe5-1eee-4b44-99cd-7474a5da6fd1" config-ref="ServiceNow_Config" service="incident" operation="deleteRecord"/>
+		<logger level="INFO" doc:name="Sending DELETE INCIDENT BY ID Request to ServiceNow" doc:id="06fa918b-81a2-4851-80f5-ad5276bc821d" message="Sending DELETE INCIDENT BY ID Request to ServiceNow. Incident ID = #[vars.incident_id]"/>
+		<servicenow:invoke doc:name="Incident - deleteRecord" doc:id="f2c8ffe5-1eee-4b44-99cd-7474a5da6fd1" config-ref="ServiceNow_Config" service="incident" operation="deleteRecord"/>
+		<logger level="INFO" doc:name="Finished DELETE INCIDENT BY ID Request" doc:id="967ad36b-28a7-4fd4-b37e-d444273fd244" message="Finished DELETE INCIDENT BY ID Request. Incident ID = #[vars.incident_id]"/>
 		<ee:transform doc:name="Transform Message" doc:id="66742a3a-0c9b-4a41-bf62-12f91bebbd24" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -356,17 +379,22 @@ output application/json
 payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="540e2b9d-ec16-4512-a0f4-4babf2840365" />
+		<set-payload value='#["Incident Deleted Successfully"]' doc:name="Incident Deleted Successfully" doc:id="18a02fdf-f6b4-4132-8538-5c0eb1fab420" />
 	</flow>
-	<flow name="closeIncident" doc:id="204ab57f-3c54-43c9-b77f-f3958e29f0f4" >
+	<flow name="closeIncidentById" doc:id="204ab57f-3c54-43c9-b77f-f3958e29f0f4" >
+		<http:listener doc:name="Listener" doc:id="4c47924a-cbef-4cf9-9f45-58be1b459e6a" config-ref="HTTP_Listener_TEST" path="/incidents/{incidentId}/close" allowedMethods="PUT"/>
+		<set-variable value="#[attributes.uriParams.incidentId]" doc:name="incident_id" doc:id="87ccad28-b236-4ddb-a615-64d318cedfd5" variableName="incident_id"/>
+		<logger level="INFO" doc:name="Received CLOSE INCIDENT BY ID Request" doc:id="710fee2c-5f85-4e2e-a954-42ad1e069011" message="Received CLOSE INCIDENT BY ID Request. Incident ID = #[vars.incident_id]"/>
 		<scatter-gather doc:name="Scatter-Gather" doc:id="13a6a3e7-862a-432e-971b-84b0a876e6be" >
 			<route >
-				<flow-ref doc:name="closeIncidentSetVariables" doc:id="e377f9d5-5508-49be-ad17-c74e9571f85e" name="CloseIncidentSetVariables" />
+				<flow-ref doc:name="closeIncidentSetVariables" doc:id="e377f9d5-5508-49be-ad17-c74e9571f85e" name="subFlow-CloseIncidentSetVariables" />
 			</route>
 			<route >
-				<flow-ref doc:name="getSysId" doc:id="4e5dfa69-6d1a-462f-a870-950eea883671" name="getSysId" />
+				<flow-ref doc:name="getSysId" doc:id="4e5dfa69-6d1a-462f-a870-950eea883671" name="subFlow-getSysId" />
 			</route>
 		</scatter-gather>
-		<ee:transform doc:name="Transform Message" doc:id="dcb33766-b3cf-4fbb-a590-5c72408dcbaa" >
+		<ee:transform doc:name="Prepare Request" doc:id="dcb33766-b3cf-4fbb-a590-5c72408dcbaa" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/xml
@@ -389,7 +417,9 @@ ns ns0 http://www.service-now.com/incident
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<servicenow:invoke operation="update" doc:name="Invoke" doc:id="9dcc5cb7-4255-4838-9b53-e2c24fa8f8ab" config-ref="ServiceNow_Config" service="incident"/>
+		<logger level="INFO" doc:name="Log Parameters of the Request" doc:id="7a408bb5-9468-421e-b1f4-2096f4a23550" message='#[{	"message": "Sending Close Incident Request to ServiceNow",&#10;	"incident_id": vars.incident_id,&#10;	"parameters": {&#10;		"sys_id": vars.sys_id,&#10;		"state": vars.state,&#10;		"caller_id": vars.caller_id,&#10;		"close_code": vars.close_code,&#10;		"parent_incident": vars.parent_incident&#10;	}&#10;}]'/>
+		<servicenow:invoke operation="update" doc:name="Incident - update" doc:id="9dcc5cb7-4255-4838-9b53-e2c24fa8f8ab" config-ref="ServiceNow_Config" service="incident"/>
+		<logger level="INFO" doc:name="Finished CLOSE INCIDENT BY ID Request" doc:id="279cc79f-86ba-433e-aca5-30b2552dcbfb" message="Finished CLOSE INCIDENT BY ID Request. Incident ID = #[vars.incident_id]"/>
 		<ee:transform doc:name="Transform Message" doc:id="38e8ee31-c95b-469e-b406-06cee3e8a8a1" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -398,5 +428,7 @@ output application/json
 payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="96a8cc57-fca2-4ca5-b4f9-147fb1d075da" message="#[payload]"/>
+		<set-payload value='#["Incident Closed Successfully"]' doc:name="Incident Closed Successfully" doc:id="a4bd028a-8e0e-4fc3-92ca-1365b1a57924" />
 	</flow>
 </mule>
