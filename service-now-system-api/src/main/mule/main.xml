@@ -417,7 +417,7 @@ ns ns0 http://www.service-now.com/incident
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<logger level="INFO" doc:name="Log Parameters of the Request" doc:id="7a408bb5-9468-421e-b1f4-2096f4a23550" message='#[{	"message": "Sending Close Incident Request to ServiceNow",&#10;	"incident_id": vars.incident_id,&#10;	"parameters": {&#10;		"sys_id": vars.sys_id,&#10;		"state": vars.state,&#10;		"caller_id": vars.caller_id,&#10;		"close_code": vars.close_code,&#10;		"parent_incident": vars.parent_incident&#10;	}&#10;}]'/>
+		<logger level="INFO" doc:name="Log Parameters of the Request" doc:id="7a408bb5-9468-421e-b1f4-2096f4a23550" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{	&#10;	"message": "Sending Close Incident Request to ServiceNow",&#10;	"incident_id": vars.incident_id,&#10;	"parameters": {&#10;		"sys_id": vars.sys_id,&#10;		"state": vars.state,&#10;		"caller_id": vars.caller_id,&#10;		"close_code": vars.close_code,&#10;		"parent_incident": vars.parent_incident&#10;	}&#10;}]'/>
 		<servicenow:invoke operation="update" doc:name="Incident - update" doc:id="9dcc5cb7-4255-4838-9b53-e2c24fa8f8ab" config-ref="ServiceNow_Config" service="incident"/>
 		<logger level="INFO" doc:name="Finished CLOSE INCIDENT BY ID Request" doc:id="279cc79f-86ba-433e-aca5-30b2552dcbfb" message="Finished CLOSE INCIDENT BY ID Request. Incident ID = #[vars.incident_id]"/>
 		<ee:transform doc:name="Transform Message" doc:id="38e8ee31-c95b-469e-b406-06cee3e8a8a1" >
