@@ -57,7 +57,6 @@ ns ns0 http://www.service-now.com/incident
 		<logger level="INFO" doc:name="Finished getSysId Request to ServiceNow" doc:id="94e66ab7-6e9e-4e6b-9cc1-9c9fb655f56b" message='Finished getSysId Request to ServiceNow. sys_id = #[vars.sys_id]'/>
 	</sub-flow>
 	<flow name="getAllIncidents" doc:id="13bb6056-90a7-4f25-9ede-7d270dc48b37" >
-		<http:listener doc:name="Listener" doc:id="a30304e3-a876-4dd9-bc6e-be387f464549" config-ref="HTTP_Listener_TEST" path="/incidents" allowedMethods="GET"/>
 		<logger level="INFO" doc:name="Received GET ALL INCIDENTS request" doc:id="091389ca-b2d6-418d-8e0e-9c4b878ff389" message="Received GET ALL INCIDENTS Request"/>
 		<ee:transform doc:name="Prepare Request" doc:id="2250e366-6e6b-4018-8695-374a061f2403" >
 			<ee:message >
@@ -151,7 +150,6 @@ payload mapObject (
 		</ee:transform>
 	</flow>
 	<flow name="createIncident" doc:id="8aed0a86-4452-4379-a5a5-c7d69492c07c" >
-		<http:listener doc:name="Listener" doc:id="535f3f36-a426-4982-b174-945622259a93" config-ref="HTTP_Listener_TEST" path="/incidents" allowedMethods="POST"/>
 		<logger level="INFO" doc:name="Received CREATE INCIDENT Request" doc:id="1ee0ea46-2864-4493-b5c5-3fbc73d11c19" message="Received CREATE INCIDENT Request. Request Details = #[payload]"/>
 		<ee:transform doc:name="Prepare Request" doc:id="0a930943-8c60-496f-bfe7-b83b6d2d057f" >
 			<ee:message >
@@ -198,7 +196,6 @@ payload]]></ee:set-payload>
 		<set-payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{   "message": "Incident created successfully",&#10;   "sys_id": payload.body.insertResponse.sys_id,&#10;    "incident_id": payload.body.insertResponse.number&#10;}]' doc:name="Set Response" doc:id="21db3f70-40c6-4829-8192-ce8a08d9a824" />
 	</flow>
 	<flow name="getIncidentById" doc:id="9ceb013f-0762-4543-8ba5-ddf297be4712" >
-		<http:listener doc:name="Listener" doc:id="a0704428-d172-4d03-8076-52fa8e049b60" config-ref="HTTP_Listener_TEST" path="/incidents/{incidentId}" allowedMethods="GET"/>
 		<set-variable value="#[attributes.uriParams.incidentId]" doc:name="incident_id" doc:id="f56e7f79-a4bb-4e2b-b4eb-1a43b138e899" variableName="incident_id"/>
 		<logger level="INFO" doc:name="Received GET INCIDENT BY ID Request" doc:id="bc6c8a8a-d664-408e-b74c-f41eb3e2b74e" message="Received GET INCIDENT BY ID Request. Incident ID = #[vars.incident_id]"/>
 		<ee:transform doc:name="Prepare Request" doc:id="ef577bcc-5782-4f2a-b875-33ff6bf57f48" >
@@ -302,7 +299,6 @@ payload]]></ee:set-payload>
 		<logger level="INFO" doc:name="Logger" doc:id="9b6e7608-3737-49d3-aa07-ea77d6f92bc8" message="#[payload]" />
 	</flow>
 	<flow name="modifyIncidentById" doc:id="5b6641d5-76a4-4ea7-a6dd-5bf52c165a12" >
-		<http:listener doc:name="Listener" doc:id="509970ee-5289-45e6-83c5-dea6cdd0a322" config-ref="HTTP_Listener_TEST" path="/incidents/{incidentId}" allowedMethods="PUT"/>
 		<set-variable value="#[attributes.uriParams.incidentId]" doc:name="incident_id" doc:id="d7357f2a-2aae-4584-b690-2ac283a22d2d" variableName="incident_id"/>
 		<logger level="INFO" doc:name="Received MODIFY INCIDENT BY ID Request" doc:id="8af65895-b329-49f0-8075-9ee99c6da376" message="Received MODIFY INCIDENT BY ID Request. Incident ID = #[vars.incident_id]"/>
 		<flow-ref doc:name="getSysId" doc:id="068e32c3-7b4a-4e60-ad40-2d63e89f4aea" name="subFlow-getSysId" />
@@ -351,7 +347,6 @@ payload]]></ee:set-payload>
 		<set-payload value='#["Incident modified successfully"]' doc:name="Success Message" doc:id="5263a5b0-7c99-456c-a41d-be5e3a8ac34f" />
 	</flow>
 	<flow name="deleteIncidentById" doc:id="21514b8f-a483-4895-b6c9-d0ba59c5ee6b" >
-		<http:listener doc:name="Listener" doc:id="53cb908e-9d6e-49bf-87d2-d2f9b45bdd24" config-ref="HTTP_Listener_TEST" path="/incidents/{incidentId}" allowedMethods="DELETE"/>
 		<set-variable value="#[attributes.uriParams.incidentId]" doc:name="incident_id" doc:id="02278a2c-0f48-4658-a6b6-ba34d7fd9220" variableName="incident_id"/>
 		<logger level="INFO" doc:name="Received DELETE INCIDENT BY ID Request" doc:id="ac0017c8-5725-4b2e-9d4e-dc1348b3b7a0" message="Received DELETE INCIDENT BY ID Request. Incident ID = #[vars.incident_id]"/>
 		<flow-ref doc:name="getSysId" doc:id="521c731c-0d58-45a0-8f1d-b3f8a425383f" name="subFlow-getSysId"/>
@@ -383,7 +378,6 @@ payload]]></ee:set-payload>
 		<set-payload value='#["Incident Deleted Successfully"]' doc:name="Incident Deleted Successfully" doc:id="18a02fdf-f6b4-4132-8538-5c0eb1fab420" />
 	</flow>
 	<flow name="closeIncidentById" doc:id="204ab57f-3c54-43c9-b77f-f3958e29f0f4" >
-		<http:listener doc:name="Listener" doc:id="4c47924a-cbef-4cf9-9f45-58be1b459e6a" config-ref="HTTP_Listener_TEST" path="/incidents/{incidentId}/close" allowedMethods="PUT"/>
 		<set-variable value="#[attributes.uriParams.incidentId]" doc:name="incident_id" doc:id="87ccad28-b236-4ddb-a615-64d318cedfd5" variableName="incident_id"/>
 		<logger level="INFO" doc:name="Received CLOSE INCIDENT BY ID Request" doc:id="710fee2c-5f85-4e2e-a954-42ad1e069011" message="Received CLOSE INCIDENT BY ID Request. Incident ID = #[vars.incident_id]"/>
 		<scatter-gather doc:name="Scatter-Gather" doc:id="13a6a3e7-862a-432e-971b-84b0a876e6be" >
