@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
-	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+<mule xmlns:servicenow="http://www.mulesoft.org/schema/mule/servicenow" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/servicenow http://www.mulesoft.org/schema/mule/servicenow/current/mule-servicenow.xsd">
 	<flow name="livenessCheck" doc:id="76895d31-a51e-4333-aa44-9a3a7b2126cd" >
 		<http:listener doc:name="Listener" doc:id="3f5b309d-f4c3-497d-bf01-28ec8b0f075a" config-ref="HTTP_Listener_config" path="/alive">
 			<http:response statusCode="200" />
@@ -21,9 +23,38 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 		</http:error-response>
 		</http:listener>
 		<flow-ref name="check-all-dependencies-are-alive" />
-		<set-payload value="UP" />
+		<set-payload value='#["UP"]' />
 	</flow>
 	<sub-flow name="check-all-dependencies-are-alive">
-		<logger />
+		<ee:transform doc:name="Transform Message" doc:id="f473a2af-8f76-4838-8b34-86b94dbbd334" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://www.service-now.com/incident
+---
+{
+	ns0#getRecords: {
+		ns0#number: "INC0010023"	
+		}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<servicenow:invoke service="incident" operation="getRecords" doc:name="Invoke" doc:id="ab5b6854-22f2-4df0-a961-95ee7b62345f" config-ref="ServiceNow_Config"/>
+		<ee:transform doc:name="Transform Message" doc:id="9fccf2c5-c247-4cc9-80e9-9b9530d29e30" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<choice doc:name="Assert sys_id" doc:id="8b0f2587-a7d6-479d-96ac-1bb9729dac4b" >
+			<when expression='#[payload.body.getRecordsResponse.getRecordsResult.sys_id == "dc2ebe6c974271107929f8a6f053af79"]'>
+				<logger level="INFO" doc:name="Logger" doc:id="f9089368-2389-46f6-888f-a24527252b1c" message='#["ServiceNow is UP"]'/>
+			</when>
+			<otherwise >
+				<raise-error doc:name="Raise error" doc:id="7c5743b6-f3f6-4e65-a4a5-1d9e34fc097e" type="ANY" description="ServiceNow is Down"/>
+			</otherwise>
+		</choice>
 	</sub-flow>
 </mule>
