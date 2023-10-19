@@ -136,6 +136,9 @@ output application/json
         <flow-ref doc:name="Flow Reference" doc:id="f194c7a7-18bb-441d-a37e-229640ae191f" name="getAllIncidents" />
     </flow>
     <flow name="put:\incidents\(incidentId)\close:application\json:servicenow-system-api-config">
-		<flow-ref doc:name="Flow Reference" doc:id="faed82ec-8240-4e77-9ff2-3d1b2c1a4dc3" name="closeIncidentById"/>
+        <flow-ref doc:name="Flow Reference" doc:id="faed82ec-8240-4e77-9ff2-3d1b2c1a4dc3" name="closeIncidentById" />
+    </flow>
+    <flow name="get:\incidents\search:servicenow-system-api-config">
+        <flow-ref doc:name="Flow Reference" doc:id="c96d422b-1f75-4c3c-8e92-a9d9b8dc1d50" name="searchIncidents" />
     </flow>
 </mule>

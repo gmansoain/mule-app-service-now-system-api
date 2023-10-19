@@ -54,7 +54,7 @@ ns ns0 http://www.service-now.com/incident
 		<logger level="INFO" doc:name="Triggered getSysId subflow" doc:id="e67dcd02-a6ac-4303-8ecc-e60dee50f0ba" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"message": "Triggered getSysId SubFlow",&#10;	"getSysId_Parameters": {&#10;		"incident_id": vars.incident_id,&#10;		"impact": vars.impact, &#10;		"urgency": vars.urgency, &#10;		"state": vars.state&#10;	}&#10;	&#10;}]'/>
 		<servicenow:invoke doc:name="Incident - getRecords" doc:id="e7d9e44f-8c5f-412c-bc6a-c5a8b654f945" config-ref="ServiceNow_Config" service="incident" operation="getRecords" />
 		<set-variable value="#[payload.body.getRecordsResponse.getRecordsResult.sys_id]" doc:name="sys_id" doc:id="7abed028-8449-4b46-bfc2-d5297a02d338" variableName="sys_id" />
-		<logger level="INFO" doc:name="Finished getSysId Request to ServiceNow" doc:id="94e66ab7-6e9e-4e6b-9cc1-9c9fb655f56b" message='Finished getSysId Request to ServiceNow. sys_id = #[vars.sys_id]'/>
+		<logger level="INFO" doc:name="Finished getSysId Request to ServiceNow" doc:id="94e66ab7-6e9e-4e6b-9cc1-9c9fb655f56b" message='Finished getSysId Request to ServiceNow. sys_id = #[vars.sys_id], Incident Id = #[vars.incident_id]'/>
 	</sub-flow>
 	<flow name="getAllIncidents" doc:id="13bb6056-90a7-4f25-9ede-7d270dc48b37" >
 		<logger level="INFO" doc:name="Received GET ALL INCIDENTS request" doc:id="091389ca-b2d6-418d-8e0e-9c4b878ff389" message="Received GET ALL INCIDENTS Request"/>
@@ -332,7 +332,7 @@ ns ns0 http://www.service-now.com/incident
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<logger level="INFO" doc:name="Log Parameters of the Request" doc:id="a3a4adfd-bf90-4624-8abc-7f7ceef619ec" message='#[output application/json&#10;---&#10;{&#10;	"message": "Sending Update Incident Request to ServiceNow",&#10;	"parameters": {&#10;		"sys_id": vars.sys_id,&#10;		"state": vars.state,&#10;		"urgency": vars.urgency,&#10;		"impact": vars.impact&#10;	}&#10;}]'/>
+		<logger level="INFO" doc:name="Log Parameters of the Request" doc:id="a3a4adfd-bf90-4624-8abc-7f7ceef619ec" message='#[output application/json&#10;---&#10;{&#10;	"message": "Sending Update Incident Request to ServiceNow",&#10;	"parameters": {&#10;		"sys_id": vars.sys_id,&#10;		"incident_id": vars.incident_id,&#10;		"state": vars.state,&#10;		"urgency": vars.urgency,&#10;		"impact": vars.impact&#10;	}&#10;}]'/>
 		<servicenow:invoke service="incident" operation="update" doc:name="Incident - Update" doc:id="cbd0a75b-716c-40d2-8f1f-1b0cab740353" config-ref="ServiceNow_Config"/>
 		<logger level="INFO" doc:name="Finished MODIFY INCIDENT BY ID Request" doc:id="c3d13c13-7a24-43ae-a199-26aa4e4678a1" message="Finished MODIFY INCIDENT BY ID Request. Incident ID = #[vars.incident_id]"/>
 		<ee:transform doc:name="Transform Message" doc:id="e7098169-8262-4687-8a74-1024b71da67b" >
@@ -343,8 +343,7 @@ output application/json
 payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<logger level="INFO" doc:name="Logger" doc:id="d46a8ce4-544d-4567-b0a1-955098aa77c0" message="#[payload]"/>
-		<set-payload value='#["Incident modified successfully"]' doc:name="Success Message" doc:id="5263a5b0-7c99-456c-a41d-be5e3a8ac34f" />
+		<set-payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{   "message": "Incident modified successfully",&#10;   "sys_id": payload.body.updateResponse.sys_id,&#10;    "incident_id": vars.incident_id&#10;}]' doc:name="Success Message" doc:id="5263a5b0-7c99-456c-a41d-be5e3a8ac34f" />
 	</flow>
 	<flow name="deleteIncidentById" doc:id="21514b8f-a483-4895-b6c9-d0ba59c5ee6b" >
 		<set-variable value="#[attributes.uriParams.incidentId]" doc:name="incident_id" doc:id="02278a2c-0f48-4658-a6b6-ba34d7fd9220" variableName="incident_id"/>
@@ -374,8 +373,7 @@ output application/json
 payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<logger level="INFO" doc:name="Logger" doc:id="540e2b9d-ec16-4512-a0f4-4babf2840365" />
-		<set-payload value='#["Incident Deleted Successfully"]' doc:name="Incident Deleted Successfully" doc:id="18a02fdf-f6b4-4132-8538-5c0eb1fab420" />
+		<set-payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{   "message": "Incident deleted successfully",&#10;   "sys_id": vars.sys_id,&#10;    "incident_id": vars.incident_id&#10;}]' doc:name="Incident Deleted Successfully" doc:id="18a02fdf-f6b4-4132-8538-5c0eb1fab420" />
 	</flow>
 	<flow name="closeIncidentById" doc:id="204ab57f-3c54-43c9-b77f-f3958e29f0f4" >
 		<set-variable value="#[attributes.uriParams.incidentId]" doc:name="incident_id" doc:id="87ccad28-b236-4ddb-a615-64d318cedfd5" variableName="incident_id"/>
@@ -422,7 +420,122 @@ output application/json
 payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<logger level="INFO" doc:name="Logger" doc:id="96a8cc57-fca2-4ca5-b4f9-147fb1d075da" message="#[payload]"/>
-		<set-payload value='#["Incident Closed Successfully"]' doc:name="Incident Closed Successfully" doc:id="a4bd028a-8e0e-4fc3-92ca-1365b1a57924" />
+		<set-payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{   "message": "Incident closed successfully",&#10;   "sys_id": vars.sys_id,&#10;    "incident_id": vars.incident_id&#10;}]' doc:name="Incident Closed Successfully" doc:id="a4bd028a-8e0e-4fc3-92ca-1365b1a57924" />
+	</flow>
+	<flow name="searchIncidents" doc:id="a0689307-5213-41ab-b408-00fbe6b57303" >
+		<logger level="INFO" doc:name="Received SEARCH INCIDENTS Request" doc:id="6d9c7c55-29e4-480a-b6db-0de90efdff10" message="Received SEARCH INCIDENTS Request. State = #[attributes.queryParams.state], Priority = #[attributes.queryParams.priority]"/>
+		<ee:transform doc:name="Translate Priority and State into numbers" doc:id="f8efd93e-fe48-4cc7-9430-4fba6a130e5b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+
+---
+attributes.queryParams mapObject (
+    ($$): if ($ == "Critical") 1
+    else if ($ == "High") 2 
+    else if ($ == "Moderate") 3
+    else if ($ == "Low") 4
+    else if ($ == "Planning") 5
+    else if ($ == "New") 1
+    else if ($ == "In Progress") 2
+    else if ($ == "On Hold") 3
+    else if ($ == "Resolved") 6
+    else if ($ == "Closed") 7
+    else if ($ == "Canceled") 8
+    else ($)
+    
+)
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Prepare Request" doc:id="7132728b-a8be-45ba-9241-939438961601" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://www.service-now.com/incident
+
+---
+{
+    ns0#getRecords: payload
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<servicenow:invoke service="incident" operation="getRecords" doc:name="getRecords" doc:id="e45846e9-886f-41d4-8110-609854824241" config-ref="ServiceNow_Config"/>
+		<logger level="INFO" doc:name="Finished SEARCH INCIDENTS Request" doc:id="fc92a61a-9bdf-488b-9fcd-6ecf2547b013" message="Finished SEARCH INCIDENTS Request"/>
+		<ee:transform doc:name="Filter Out fields for Response" doc:id="a6d81eb0-9fbf-4bee-a1ff-a48a1fcf1b32" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var results = payload.body.getRecordsResponse
+---
+results mapObject (
+    { "incident": {
+        "incident_id": $.number,
+        "sys_id": $.sys_id,
+        "description": $.short_description,
+        "state": $.incident_state,
+        "priority": $.priority,
+        "urgency": $.urgency,
+        "impact": $.impact,
+        "comments": $.comments_and_work_notes
+        }
+    }
+)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Translate State, Urgency, Impact and Priority into strings" doc:id="4475d972-ad98-4202-bb92-4990eb92b9e2" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+fun getUrgency(urgency) = urgency match {
+	    case "1" -> "High"
+        case "2" -> "Medium"
+        case "3" -> "Low"
+        else -> null
+	}
+
+fun getState(state) = state match {
+        case "1" -> "New"
+        case "2" -> "In Progress"
+        case "3" -> "On Hold"
+        case "6" -> "Resolved"
+        case "7" -> "Closed"
+        case "8" -> "Canceled"
+        else -> null
+}
+
+fun getImpact(impact) = impact match {
+        case "1" -> "High"
+        case "2" -> "Medium"
+        case "3" -> "Low"
+        else -> null
+}
+
+fun getPriority(priority) = priority match {
+        case "1" -> "Critical"
+        case "2" -> "High"
+        case "3" -> "Moderate"
+        case "4" -> "Low"
+        case "5" -> "Planning"
+        else -> null
+}
+---
+payload mapObject (
+    {
+        "incident": {
+            "incident_id": $.incident_id,
+            "sys_id": $.sys_id,
+            "description": $.description,
+            "state": getState($.state),
+            "urgency": getUrgency($.urgency),
+            "impact": getImpact($.impact),
+            "priority": getPriority($.priority),
+            "comments": $.comments
+        }
+    
+    }
+)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 	</flow>
 </mule>

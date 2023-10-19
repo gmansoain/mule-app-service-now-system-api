@@ -102,4 +102,32 @@ types:
         description: Bad request
       404:
         description: Incident not found
+
+/incidents/search:
+  is: [client-id-required]
+  get:
+    queryParameters:
+      priority?:
+        enum:
+          - Critical
+          - High
+          - Moderate
+          - Low
+          - Planning
+      state?:
+        enum:
+          - New
+          - In Progress
+          - On Hold
+          - Resolved
+          - Closed
+          - Canceled
+    responses:
+      200:
+        body:
+          type: Incident[]
+      400:
+        description: Bad request
+      404:
+        description: Incident not found
       
