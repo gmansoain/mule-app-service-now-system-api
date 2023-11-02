@@ -4,7 +4,7 @@
 
 	<groupId>fc9e3283-a489-4e88-99aa-cceea4aa5ea1</groupId>
 	<artifactId>service-now-system-api</artifactId>
-	<version>1.0.8</version>
+	<version>1.0.9</version>
 	<packaging>mule-application</packaging>
 
 	<name>service-now-system-api</name>
@@ -18,6 +18,19 @@
 	</properties>
 
 	<build>
+		<resources>
+	       <resource>
+	           <directory>src/main/resources</directory>
+	           <filtering>false</filtering>
+	       </resource>
+	       <resource>
+	           <directory>src/main/resources</directory>
+	           <filtering>true</filtering>
+	           <includes>
+	                <include>properties/*.yaml</include>
+	            </includes>
+	       </resource>
+  	 	</resources>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

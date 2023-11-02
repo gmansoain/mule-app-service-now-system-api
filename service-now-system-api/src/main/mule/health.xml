@@ -13,7 +13,8 @@ http://www.mulesoft.org/schema/mule/servicenow http://www.mulesoft.org/schema/mu
 				<http:body ><![CDATA[#[DOWN]]]></http:body>
 			</http:error-response>
 		</http:listener>
-		<set-payload value='UP' doc:name="Set Payload" doc:id="e6f45099-b584-47c3-8dca-04da6cb8fac7" />
+		<set-payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    "status": "OK",&#10;    "apiName": p("api.name") default "",&#10;	"apiVersion": p("api.version") default "",&#10;	"timeStamp": now()&#10;}]' doc:name="Set Payload" doc:id="e6f45099-b584-47c3-8dca-04da6cb8fac7" />
+		<set-variable value="200" doc:name="Set httpStatus to 200" doc:id="7451b6ee-1041-49e6-84a7-06a66ccfdbb9" variableName="httpStatus"/>
 	</flow>
 	<flow name="readinessCheck">
 		<http:listener config-ref="HTTP_Listener_config" path="/ready">
@@ -22,11 +23,41 @@ http://www.mulesoft.org/schema/mule/servicenow http://www.mulesoft.org/schema/mu
 		<http:body><![CDATA[DOWN]]></http:body>
 		</http:error-response>
 		</http:listener>
-		<flow-ref name="check-all-dependencies-are-alive" />
-		<set-payload value='#["UP"]' />
+		<flow-ref name="check-dependencies" doc:name="check-dependencies" doc:id="778233a4-a81b-4c34-b0bc-2c229be945ab"/>
+		<ee:transform doc:name="Map Response" doc:id="10eabf8f-02cf-4cb2-b86b-348faed8eee8" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+fun getDependencyStatus(dependencyResponse) = if(sizeOf(dependencyResponse.status find "UP") == sizeOf(dependencyResponse))
+    "OK"
+else if (sizeOf(dependencyResponse.status find "DOWN") == sizeOf(dependencyResponse))
+    "OFFLINE"
+else
+    "DEGRADED"
+
+output application/json
+---
+{
+    "status": getDependencyStatus(vars.dependencyList),
+    "apiName": p("api.name") default "",
+	"apiVersion": p("api.version") default "",
+	"timeStamp": now(),
+    "dependencies": vars.dependencyList map (
+        {
+            "name": $.name,
+            "status": $.status
+        }
+    )
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value="200" doc:name="Set httpStatus to 200" doc:id="7e7a65f0-d3c2-4be5-8ce8-e556e9054006" variableName="httpStatus"/>
 	</flow>
-	<sub-flow name="check-all-dependencies-are-alive">
-		<ee:transform doc:name="Transform Message" doc:id="f473a2af-8f76-4838-8b34-86b94dbbd334" >
+	<sub-flow name="check-dependencies" doc:id="1cbd1141-ecb7-4f75-b00c-2120a02bcaf8" >
+		<flow-ref doc:name="check dependency service now" doc:id="6727530c-bb31-4a67-bda1-f1457d90acb0" name="check-dependency-service-now" />
+		<set-variable value="#[%dw 2.0&#10;output application/json&#10;---&#10;[&#10;	vars.dependencyServiceNow&#10;]]" doc:name="dependencyList" doc:id="c6a35b35-0162-44a2-91cd-4d4ed6b66333" variableName="dependencyList"/>
+	</sub-flow>
+	<sub-flow name="check-dependency-service-now" doc:id="26df58d4-1993-4d39-ac56-11259a5ac1ce">
+		<ee:transform doc:name="prepare Request" doc:id="f473a2af-8f76-4838-8b34-86b94dbbd334" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/xml
@@ -39,7 +70,14 @@ ns ns0 http://www.service-now.com/incident
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<servicenow:invoke service="incident" operation="getRecords" doc:name="Invoke" doc:id="ab5b6854-22f2-4df0-a961-95ee7b62345f" config-ref="ServiceNow_Config"/>
+		<try doc:name="Try" doc:id="da1f25a1-8bca-41fd-b52b-a84ff9507530" >
+			<servicenow:invoke service="incident" operation="getRecords" doc:name="Incident Test" doc:id="ab5b6854-22f2-4df0-a961-95ee7b62345f" config-ref="ServiceNow_Config" />
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="6c60f78c-b1de-4f6d-b053-27c0497d8299" type="ANY">
+					<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	name: "ServiceNow",&#10;	status: "DOWN"&#10;}]' doc:name="Set dependencyServiceNow to DOWN" doc:id="9798d2c6-0c80-4e8d-a5ba-62304ef75aaf" variableName="dependencyServiceNow"/>
+				</on-error-continue>
+			</error-handler>
+		</try>
 		<ee:transform doc:name="Transform Message" doc:id="9fccf2c5-c247-4cc9-80e9-9b9530d29e30" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -50,10 +88,10 @@ payload]]></ee:set-payload>
 		</ee:transform>
 		<choice doc:name="Assert sys_id" doc:id="8b0f2587-a7d6-479d-96ac-1bb9729dac4b" >
 			<when expression='#[payload.body.getRecordsResponse.getRecordsResult.sys_id == "dc2ebe6c974271107929f8a6f053af79"]'>
-				<logger level="INFO" doc:name="Logger" doc:id="f9089368-2389-46f6-888f-a24527252b1c" message='#["ServiceNow is UP"]'/>
+				<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	name: "ServiceNow",&#10;	status: "UP"&#10;}]' doc:name="Set dependencyServiceNow to UP" doc:id="fe6ef56d-af8f-4ccd-85e3-53871cc735e0" variableName="dependencyServiceNow"/>
 			</when>
-			<otherwise >
-				<raise-error doc:name="Raise error" doc:id="7c5743b6-f3f6-4e65-a4a5-1d9e34fc097e" type="ANY" description="ServiceNow is Down"/>
+			<otherwise>
+				<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	name: "ServiceNow",&#10;	status: "DOWN"&#10;}]' doc:name="Set dependencyServiceNow to DOWN" doc:id="6e29544a-a084-468d-a8e3-4bd6918bf22d" variableName="dependencyServiceNow"/>
 			</otherwise>
 		</choice>
 	</sub-flow>

@@ -23,4 +23,5 @@ http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/m
 	</secure-properties:config>
 	<global-property doc:name="Global Property" doc:id="075b4cab-5fe4-4529-8efd-a6f0475a3fc4" name="env" value="${env}" />
 	<api-gateway:autodiscovery apiId="${api.id}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="7110a2c0-e024-4a07-a857-8b127c3dce9c" flowRef="servicenow-system-api-main" />
+	<configuration doc:name="Configuration" doc:id="8befc366-a21b-4317-9d14-9d002a6498e5" defaultErrorHandler-ref="GON_Error_Handler" />
 </mule>

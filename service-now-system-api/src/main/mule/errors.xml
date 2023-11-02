@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<error-handler name="GON_Error_Handler">
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <logger level="INFO" doc:name="Logger" doc:id="60b45341-192f-40f4-ad1d-ef0119d54d65" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"apiName": p("api.name") default "",&#10;	"apiVersion": p("api.version") default "", &#10;	"error": {&#10; 		"errorType": error.errorType default "",&#10;		"description": error.description default "",&#10;		"detailedDescription": error.detailedDescription default ""&#10; 	}	&#10;}]'/>
+			<set-variable value="400" doc:name="Set httpStatus to 400" doc:id="bcea7cc9-622d-4f4c-aa12-ca5e36e815f9" variableName="httpStatus"/>
+			<ee:transform doc:name="Error Message" doc:id="a60f9026-a985-4fef-bdad-3e07e7679ecf" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"errorCode": p('errors.api-kit.error-code-500'),
+  	"errorMessage": error.description,
+  	"transactionId": correlationId,
+  	"timeStamp": now()
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <logger level="INFO" doc:name="Logger" doc:id="a84fda53-f19f-4a43-a622-999759cf4c46" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"apiName": p("api.name") default "",&#10;	"apiVersion": p("api.version") default "", &#10;	"error": {&#10; 		"errorType": error.errorType default "",&#10;		"description": error.description default "",&#10;		"detailedDescription": error.detailedDescription default ""&#10; 	}	&#10;}]'/>
+			<set-variable value="404" doc:name="Set httpStatus to 404" doc:id="44210e7f-b089-4911-bb8e-481d714cb111" variableName="httpStatus"/>
+			<ee:transform doc:name="Error Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"errorCode": p('errors.api-kit.error-code-500'),
+  	"errorMessage": error.description,
+  	"transactionId": correlationId,
+  	"timeStamp": now()
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[404]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <logger level="INFO" doc:name="Logger" doc:id="b9e02dfc-2bbd-4ee4-a36c-c7d873fa4b08" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"apiName": p("api.name") default "",&#10;	"apiVersion": p("api.version") default "", &#10;	"error": {&#10; 		"errorType": error.errorType default "",&#10;		"description": error.description default "",&#10;		"detailedDescription": error.detailedDescription default ""&#10; 	}	&#10;}]'/>
+			<set-variable value="405" doc:name="Set httpStatus to 405" doc:id="3cd0cc99-2ce7-48ec-8111-dfe7aa800e91" variableName="httpStatus"/>
+			<ee:transform doc:name="Error Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"errorCode": p('errors.api-kit.error-code-500'),
+  	"errorMessage": error.description,
+  	"transactionId": correlationId,
+  	"timeStamp": now()
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[405]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <logger level="INFO" doc:name="Logger" doc:id="d64eed4e-ab15-4b99-b62f-f19c51127c12" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"apiName": p("api.name") default "",&#10;	"apiVersion": p("api.version") default "", &#10;	"error": {&#10; 		"errorType": error.errorType default "",&#10;		"description": error.description default "",&#10;		"detailedDescription": error.detailedDescription default ""&#10; 	}	&#10;}]'/>
+			<set-variable value="406" doc:name="Set httpStatus to 406" doc:id="0a4694e0-c6e3-4f4a-823f-e5ef7c5af1d1" variableName="httpStatus"/>
+			<ee:transform doc:name="Error Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"errorCode": p('errors.api-kit.error-code-500'),
+  	"errorMessage": error.description,
+  	"transactionId": correlationId,
+  	"timeStamp": now()
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[406]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <logger level="INFO" doc:name="Logger" doc:id="3bfd689d-5b44-46e6-b7bc-151b0ebbbf4a" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"apiName": p("api.name") default "",&#10;	"apiVersion": p("api.version") default "", &#10;	"error": {&#10; 		"errorType": error.errorType default "",&#10;		"description": error.description default "",&#10;		"detailedDescription": error.detailedDescription default ""&#10; 	}	&#10;}]'/>
+			<set-variable value="415" doc:name="Set httpStatus to 415" doc:id="90e64a18-eb1c-447a-bf62-68afdc3d7e47" variableName="httpStatus"/>
+			<ee:transform doc:name="Error Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"errorCode": p('errors.api-kit.error-code-500'),
+  	"errorMessage": error.description,
+  	"transactionId": correlationId,
+  	"timeStamp": now()
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[415]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <logger level="INFO" doc:name="Logger" doc:id="6924d47b-ee7c-426d-8cca-7fa38073f47f" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"apiName": p("api.name") default "",&#10;	"apiVersion": p("api.version") default "", &#10;	"error": {&#10; 		"errorType": error.errorType default "",&#10;		"description": error.description default "",&#10;		"detailedDescription": error.detailedDescription default ""&#10; 	}	&#10;}]'/>
+			<set-variable value="501" doc:name="Set httpStatus to 501" doc:id="c318da6e-8171-4ebf-852c-8d11e6c90127" variableName="httpStatus"/>
+			<ee:transform doc:name="Error Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"errorCode": p('errors.api-kit.error-code-500'),
+  	"errorMessage": error.description,
+  	"transactionId": correlationId,
+  	"timeStamp": now()
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[501]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+		
+		<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="63e0543f-6549-4c27-9d04-4ef4c3002c50" type="SERVICENOW:CONNECTIVITY, SERVICENOW:RETRY_EXHAUSTED, SERVICENOW:TIMEOUT">
+			<logger level="INFO" doc:name="Logger" doc:id="4e76003f-697b-4487-afb4-1e5fa673a7a6" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"apiName": p("api.name") default "",&#10;	"apiVersion": p("api.version") default "", &#10;	"error": {&#10; 		"errorType": error.errorType default "",&#10;		"description": error.description default "",&#10;		"detailedDescription": error.detailedDescription default ""&#10; 	}	&#10;}]'/>
+			<set-variable value="500" doc:name="Set httpStatus to 500" doc:id="091af978-6147-4da5-8d7c-f37219df79f9" variableName="httpStatus"/>
+			<ee:transform doc:name="Transform Message" doc:id="8ce00d30-1a04-4049-be8e-c6d3999c64d9" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"errorCode": p('errors.serviceNow.error-code-500'),
+  	"errorMessage": error.description,
+  	"transactionId": correlationId,
+  	"timeStamp": now()
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		</on-error-continue>
+        
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="b6bce389-ff3b-4e5c-8f0b-ef51eb43732d" type="GON_SERVICENOW: NO INCIDENT FOUND">
+			<logger level="INFO" doc:name="Logger" doc:id="c7090cb3-17b9-4d71-b121-01d55d259a2f" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"apiName": p("api.name") default "",&#10;	"apiVersion": p("api.version") default "", &#10;	"error": {&#10; 		"errorType": error.errorType default "",&#10;		"description": error.description default "",&#10;		"detailedDescription": error.detailedDescription default ""&#10; 	}	&#10;}]'/>
+			<set-variable value="404" doc:name="Set httpStatus to 404" doc:id="0389ae70-af2e-4577-b3c7-2d93142b5391" variableName="httpStatus"/>
+			<ee:transform doc:name="Error Message" doc:id="69caa947-a316-4902-be4a-1a657463f3f9" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"errorCode": p('errors.serviceNow.error-code-404'),
+  	"errorMessage": error.description,
+  	"transactionId": correlationId,
+  	"timeStamp": now()
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="5fc7482f-0d27-41c9-9b57-d8c2b84d3814" type="SERVICENOW:BAD_REQUEST, SERVICENOW:BAD_RESPONSE, SERVICENOW:CANNOT_DISPATCH, SERVICENOW:ENCODING, SERVICENOW:INVALID_WSDL, SERVICENOW:PROCESSING_ERROR, SERVICENOW:SOAP_FAULT">
+			<logger level="INFO" doc:name="Logger" doc:id="ba645c2d-5b4e-4a4e-b866-8df5a7ae05a2" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"apiName": p("api.name") default "",&#10;	"apiVersion": p("api.version") default "", &#10;	"error": {&#10; 		"errorType": error.errorType default "",&#10;		"description": error.description default "",&#10;		"detailedDescription": error.detailedDescription default ""&#10; 	}	&#10;}]'/>
+			<set-variable value="400" doc:name="Set httpStatus to 400" doc:id="9ebbc7f0-3cda-4efd-b60a-e6285bafc5cd" variableName="httpStatus"/>
+			<ee:transform doc:name="Error Message" doc:id="52431b93-8440-4f1d-aaab-1ab20a5b4e87" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"errorCode": p('errors.serviceNow.error-code-400'),
+  	"errorMessage": error.description,
+  	"transactionId": correlationId,
+  	"timeStamp": now()
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		</on-error-propagate>     
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="17dd1dcf-a457-4b19-8dfb-7a5b477c6faf" type="ANY">
+			<logger level="INFO" doc:name="Logger" doc:id="dfedfbf7-6dca-4e36-914d-c7ef1dfc649d" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"apiName": p("api.name") default "",&#10;	"apiVersion": p("api.version") default "", &#10;	"error": {&#10; 		"errorType": error.errorType default "",&#10;		"description": error.description default "",&#10;		"detailedDescription": error.detailedDescription default ""&#10; 	}	&#10;}]'/>
+			<set-variable value="500" doc:name="Set httpStatus to 500" doc:id="0b834ec5-bc15-4b4e-94d0-99b942eee8db" variableName="httpStatus"/>
+			<ee:transform doc:name="Error Message" doc:id="cd204024-7926-4e44-8cc7-da06c5c2ef2e" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"errorCode": p('errors.api-kit.error-code-500'),
+  	"errorMessage": error.description,
+  	"transactionId": correlationId,
+  	"timeStamp": now()
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		</on-error-propagate>   
+        </error-handler></mule>
