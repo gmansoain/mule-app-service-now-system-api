@@ -3,18 +3,8 @@ title: ServiceNow System API
 mediaType: 
 - application/json
 
-traits:
-  client-id-required:
-    headers:
-      client_id:
-        type: string
-      client_secret:
-        type: string
-    responses:
-      401:
-        description: Unauthorized or invalid client application credentials
-      500:
-        description: Bad response from authorization server, or WSDL SOAP Fault error
+uses:
+  common: /exchange_modules/fc9e3283-a489-4e88-99aa-cceea4aa5ea1/gon-common-api-fragments/1.0.4/gon-common-api-fragments.raml
 
 types:
   Incident: !include datatypes/Incident.raml
@@ -22,36 +12,33 @@ types:
   IncidentClosed: !include datatypes/IncidentClosed.raml
 
 /incidents:
-  is: [client-id-required]
   get:
+    is: [common.client-id-required, common.error-responses]
     description: Retrieve All Incidents
     responses:
       200:
         body:
           type: Incident[]
   post:
+    is: [common.client-id-required, common.error-responses]
     description: Create a New Incident
     body:
       type: IncidentNoID
     responses:
       201:
         description: Incident created successfully
-      400:
-        description: Bad request
-
   
 /incidents/{incidentId}:
-  is: [client-id-required]
   get:
+    is: [common.client-id-required, common.error-responses]
     description: Retrieve Incident details
     responses:
       200:
         body:
           type: Incident
-      404:
-        description: Incident not found
       
   put:
+    is: [common.client-id-required, common.error-responses]
     description: Modify Incident details
     queryParameters:
       state?: 
@@ -72,21 +59,17 @@ types:
     responses:
       200: 
         description: Incident modified successfully
-      400:
-        description: Bad request
-      404:
-        description: Incident not found
 
   delete:
+    is: [common.client-id-required, common.error-responses]
     description: Delete Incident
     responses:
       204: 
         description: Incident deleted successfully
-      404:
-        description: Incident not found
 
 /incidents/{incidentId}/close:
   put:
+    is: [common.client-id-required, common.error-responses]
     queryParameters:
       state:
         enum:
@@ -98,14 +81,10 @@ types:
     responses:
       200: 
         description: Incident closed successfully
-      400:
-        description: Bad request
-      404:
-        description: Incident not found
 
 /incidents/search:
-  is: [client-id-required]
   get:
+    is: [common.client-id-required, common.error-responses]
     queryParameters:
       priority?:
         enum:
@@ -125,9 +104,4 @@ types:
     responses:
       200:
         body:
-          type: Incident[]
-      400:
-        description: Bad request
-      404:
-        description: Incident not found
-      
+          type: Incident[]     

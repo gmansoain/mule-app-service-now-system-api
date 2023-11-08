@@ -18,10 +18,11 @@ http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/m
 		<http:listener-connection host="0.0.0.0" port="8085" />
 	</http:listener-config>
 	<configuration-properties doc:name="Configuration properties" doc:id="7943eba8-8bc5-494c-9597-434d043c6d26" file="properties/properties-prod.yaml" />
-	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="d37c4a95-37a1-447d-9fae-712f1c6b5e0a" file="secure.properties/secure-properties-${env}.yaml" key="Mule1234" >
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="d37c4a95-37a1-447d-9fae-712f1c6b5e0a" file="secure.properties/secure-properties-${env}.yaml" key="${secure.key}" >
 		<secure-properties:encrypt algorithm="Blowfish" />
 	</secure-properties:config>
 	<global-property doc:name="Global Property" doc:id="075b4cab-5fe4-4529-8efd-a6f0475a3fc4" name="env" value="${env}" />
 	<api-gateway:autodiscovery apiId="${api.id}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="7110a2c0-e024-4a07-a857-8b127c3dce9c" flowRef="servicenow-system-api-main" />
 	<configuration doc:name="Configuration" doc:id="8befc366-a21b-4317-9d14-9d002a6498e5" defaultErrorHandler-ref="GON_Error_Handler" />
+	<global-property doc:name="Global Property" doc:id="ff066603-83a7-4163-a264-801d597fd362" name="secure.key" value="${secure.key}" />
 </mule>
