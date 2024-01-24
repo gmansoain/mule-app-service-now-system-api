@@ -5,7 +5,7 @@ api:
 
 serviceNow:
   username: "admin"
-  serviceAddress: "https://dev25750.service-now.com"
+  serviceAddress: "https://dev221753.service-now.com"
   
 # Errors Description
 errors:

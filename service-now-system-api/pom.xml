@@ -4,7 +4,7 @@
 
 	<groupId>fc9e3283-a489-4e88-99aa-cceea4aa5ea1</groupId>
 	<artifactId>service-now-system-api</artifactId>
-	<version>1.0.9</version>
+	<version>1.1.0</version>
 	<packaging>mule-application</packaging>
 
 	<name>service-now-system-api</name>
@@ -74,6 +74,17 @@
 						</secureProperties>
 					</cloudhub2Deployment>
 					<classifier>mule-application</classifier>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.sonarsource.sonar-packaging-maven-plugin</groupId>
+				<artifactId>sonar-packaging-maven-plugin</artifactId>
+				<version>1.17</version>
+				<extensions>true</extensions>
+				<configuration>
+					<pluginClass>com.mulesoft.services.tools.sonarqube.MulePlugin</pluginClass>
+					<pluginName>MulePlugin</pluginName>
+					<pluginKey>mulevalidationsonarqubeplugin-mule</pluginKey>
 				</configuration>
 			</plugin>
 		</plugins>
