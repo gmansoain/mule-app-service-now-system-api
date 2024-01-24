@@ -8,7 +8,7 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
 http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd">
 	<servicenow:config name="ServiceNow_Config" doc:name="ServiceNow Config" doc:id="ad5fabb4-cc78-419d-a507-59bed7507767" >
-		<servicenow:basic-connection username="${serviceNow.username}" password="${secure::serviceNow.username}" serviceAddress="${serviceNow.serviceAddress}" >
+		<servicenow:basic-connection username="${serviceNow.username}" password="${secure::serviceNow.password}" serviceAddress="${serviceNow.serviceAddress}" >
 			<servicenow:transport >
 				<servicenow:basic-auth-http-message-dispatcher-provider username="admin" password="PbvW3Tq@a3-Y" />
 			</servicenow:transport>
